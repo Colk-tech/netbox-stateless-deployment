@@ -30,7 +30,7 @@ STORAGES = {
             "endpoint_url": require_env("S3_ENDPOINT_URL"),
             "region_name": os.environ.get("S3_REGION", "auto"),
             "bucket_name": require_env("S3_BUCKET_NAME"),
-            "access_key": require_env("S3_ACCESS_KEY_ID"),
+            "access_key": require_env("S3_ACCESS_ID"),
             "secret_key": require_secret("s3_secret_access_key"),
             "location": os.environ.get("S3_MEDIA_PREFIX", "media"),
             "signature_version": "s3v4",
