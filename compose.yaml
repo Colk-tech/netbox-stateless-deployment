@@ -1,0 +1,107 @@
+---
+x-netbox: &netbox
+  # yamllint disable-line rule:line-length
+  image: docker.io/netboxcommunity/netbox:v4.7.0-5.1.1@sha256:1685e91c61bb4050089db2bb1603718820ae3ce0b266d4d069ff7c682f5d9c58
+  env_file:
+    - .env
+
+  environment:
+    ALLOWED_HOSTS: "${NETBOX_ALLOWED_HOSTS:?NETBOX_ALLOWED_HOSTS is required}"
+    TIME_ZONE: "${NETBOX_TIME_ZONE:-UTC}"
+
+    DB_HOST: "${PSQL_HOST:?PSQL_HOST is required}"
+    DB_PORT: "${PSQL_PORT:-5432}"
+    DB_NAME: "${PSQL_DATABASE:?PSQL_DATABASE is required}"
+    DB_USER: "${PSQL_USERNAME:?PSQL_USERNAME is required}"
+    DB_SSLMODE: "${PSQL_SSL_MODE:-require}"
+    DB_CONN_MAX_AGE: "${PSQL_CONN_MAX_AGE:-300}"
+
+    REDIS_HOST: "${REDIS_TASKS_HOST:?REDIS_TASKS_HOST is required}"
+    REDIS_PORT: "${REDIS_TASKS_PORT:-6379}"
+    REDIS_USERNAME: "${REDIS_TASKS_USERNAME:-}"
+    REDIS_DATABASE: "${REDIS_TASKS_DATABASE:-0}"
+    REDIS_SSL: "${REDIS_TASKS_SSL:-true}"
+    REDIS_INSECURE_SKIP_TLS_VERIFY: >-
+      ${REDIS_TASKS_INSECURE_SKIP_TLS_VERIFY:-false}
+
+    REDIS_CACHE_HOST: "${REDIS_CACHE_HOST:?REDIS_CACHE_HOST is required}"
+    REDIS_CACHE_PORT: "${REDIS_CACHE_PORT:-6379}"
+    REDIS_CACHE_USERNAME: "${REDIS_CACHE_USERNAME:-}"
+    REDIS_CACHE_DATABASE: "${REDIS_CACHE_DATABASE:-1}"
+    REDIS_CACHE_SSL: "${REDIS_CACHE_SSL:-true}"
+    REDIS_CACHE_INSECURE_SKIP_TLS_VERIFY: >-
+      ${REDIS_CACHE_INSECURE_SKIP_TLS_VERIFY:-false}
+
+  secrets:
+    - source: netbox_secret_key
+      target: secret_key
+    - source: netbox_api_token_pepper_1
+      target: api_token_pepper_1
+    - source: psql_password
+      target: db_password
+    - source: redis_tasks_password
+      target: redis_password
+    - source: redis_cache_password
+      target: redis_cache_password
+    - source: s3_secret_access_key
+      target: s3_secret_access_key
+
+  restart: unless-stopped
+
+  volumes:
+    - ./configuration/extra.py:/etc/netbox/config/extra.py:ro
+
+services:
+  netbox:
+    <<: *netbox
+
+    ports:
+      - target: 8080
+        published: "${NETBOX_PORT:-8000}"
+        host_ip: 127.0.0.1
+        protocol: tcp
+
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - /opt/netbox/health.sh
+      start_period: 120s
+      timeout: 5s
+      interval: 15s
+      retries: 10
+
+  netbox-worker:
+    <<: *netbox
+
+    depends_on:
+      netbox:
+        condition: service_healthy
+
+    command:
+      - /opt/netbox/venv/bin/python
+      - /opt/netbox/netbox/manage.py
+      - rqworker
+
+secrets:
+  netbox_secret_key:
+    file: ./secrets/netbox_secret_key
+
+  netbox_api_token_pepper_1:
+    file: ./secrets/netbox_api_token_pepper_1
+
+  psql_password:
+    file: ./secrets/psql_password
+
+  redis_tasks_password:
+    file: ./secrets/redis_tasks_password
+
+  redis_cache_password:
+    file: ./secrets/redis_cache_password
+
+  s3_secret_access_key:
+    file: ./secrets/s3_secret_access_key
+
+networks:
+  default:
+    enable_ipv4: true
+    enable_ipv6: true
