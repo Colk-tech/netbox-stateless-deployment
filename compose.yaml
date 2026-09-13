@@ -1,7 +1,7 @@
 ---
 x-netbox: &netbox
-  image: \
-    docker.io/netboxcommunity/netbox:v4.7.0-5.1.1@sha256:sha256:1685e91c61bb4050089db2bb1603718820ae3ce0b266d4d069ff7c682f5d9c58
+  # yamllint disable-line rule:line-length
+  image: docker.io/netboxcommunity/netbox:v4.7.0-5.1.1@sha256:1685e91c61bb4050089db2bb1603718820ae3ce0b266d4d069ff7c682f5d9c58
   env_file:
     - .env
 
@@ -100,3 +100,8 @@ secrets:
 
   s3_secret_access_key:
     file: ./secrets/s3_secret_access_key
+
+networks:
+  default:
+    enable_ipv4: true
+    enable_ipv6: true
