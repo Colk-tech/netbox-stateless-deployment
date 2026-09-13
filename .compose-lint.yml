@@ -1,0 +1,37 @@
+---
+rules:
+  CL-0003:
+    exclude_services:
+      netbox: >-
+        Preserve the upstream NetBox container security model until
+        no-new-privileges compatibility has been verified.
+      netbox-worker: >-
+        Preserve the upstream NetBox container security model until
+        no-new-privileges compatibility has been verified.
+
+  CL-0006:
+    exclude_services:
+      netbox: >-
+        Capability restrictions are intentionally deferred until the
+        capabilities required by the upstream NetBox image are verified.
+      netbox-worker: >-
+        Capability restrictions are intentionally deferred until the
+        capabilities required by the upstream NetBox worker are verified.
+
+  CL-0007:
+    exclude_services:
+      netbox: >-
+        A writable root filesystem is retained until all runtime write paths
+        required by the upstream NetBox image have been identified.
+      netbox-worker: >-
+        A writable root filesystem is retained until all runtime write paths
+        required by the upstream NetBox worker have been identified.
+
+  CL-0026:
+    exclude_services:
+      netbox: >-
+        Resource limits are intentionally delegated to the disposable worker
+        node and will be sized after observing actual NetBox resource usage.
+      netbox-worker: >-
+        Resource limits are intentionally delegated to the disposable worker
+        node and will be sized after observing actual worker resource usage.
