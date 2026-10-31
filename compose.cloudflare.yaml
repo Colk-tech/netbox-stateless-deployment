@@ -1,7 +1,7 @@
 ---
 services:
   cloudflared:
-    image: cloudflare/cloudflared:2026.9.0
+    image: cloudflare/cloudflared:2026.10.7
 
     depends_on:
       netbox:
